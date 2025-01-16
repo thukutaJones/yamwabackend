@@ -1,6 +1,7 @@
 const multer = require("multer");
 const xlsx = require("xlsx");
 const Timetable = require("../models/timetable.model");
+const Classes = require("../models/classes.model");
 
 const storage = multer.memoryStorage();
 
@@ -23,7 +24,6 @@ const upload = multer({
   },
 });
 exports.uploadFile = upload.single("timetable");
-
 const extractTimetableData = (fileBuffer) => {
   const workbook = xlsx.read(fileBuffer, { type: "buffer" });
   const sheetNames = workbook.SheetNames;
@@ -33,7 +33,7 @@ const extractTimetableData = (fileBuffer) => {
       const sheet = workbook.Sheets[sheetName];
       const timetableData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
 
-      if (timetableData.length < 3) return null;
+      if (timetableData.length < 2) return null;
 
       const day = timetableData[0][0] || sheetName;
       const timeSlots = timetableData[1].slice(1);
@@ -42,16 +42,55 @@ const extractTimetableData = (fileBuffer) => {
         day,
         schedules: timetableData
           .slice(2)
-          .map((row) => ({
-            program: row[0],
-            content: timeSlots
-              .map((time, index) => ({
-                course: row[index + 1] || "",
-                time,
-              }))
-              .filter((item) => item.course),
-          }))
-          .filter((item) => item.program),
+          .map((row, rowIndex) => {
+            const program = row[0];
+            if (!program) return null;
+
+            const content = [];
+            let currentCourse = null;
+            let currentLocation = null;
+            let startTime = null;
+
+            for (let colIndex = 0; colIndex < timeSlots.length; colIndex++) {
+              const time = timeSlots[colIndex];
+              const course = row[colIndex + 1]?.trim() || "";
+              const locationRow = timetableData[rowIndex + 3] || [];
+              const location = locationRow[colIndex + 1]?.trim() || "";
+
+              if (
+                currentCourse === course &&
+                currentLocation === location &&
+                course
+              ) {
+                // Extend the end time for consecutive slots of the same course
+                const endTime = timeSlots[colIndex + 1] || time;
+                content[content.length - 1].time = `${startTime}-${endTime}`;
+              } else if (course) {
+                startTime = time;
+                const endTime = timeSlots[colIndex + 1] || time;
+
+                content.push({
+                  course,
+                  location,
+                  time: `${startTime}-${endTime}`,
+                });
+
+                currentCourse = course;
+                currentLocation = location;
+              } else {
+                currentCourse = null;
+                currentLocation = null;
+              }
+            }
+
+            if (currentCourse) {
+              const endTime = timeSlots[timeSlots.length] || "6:45PM";
+              content[content.length - 1].time = `${startTime}-${endTime}`;
+            }
+
+            return { program, content };
+          })
+          .filter((item) => item),
       };
     })
     .filter((sheet) => sheet);
@@ -70,8 +109,9 @@ exports.uploadTimetable = async (req, res) => {
     if (existingInstitution) {
       return res
         .status(400)
-        .json({ status: "failed", message: "Institution already exist" });
+        .json({ status: "failed", message: "Institution already exists" });
     }
+
     const extractedData = extractTimetableData(req.file.buffer);
 
     const timetable = new Timetable({
@@ -80,13 +120,12 @@ exports.uploadTimetable = async (req, res) => {
     });
     await timetable.save();
 
-    res
-      .status(200)
-      .json({
-        status: "success",
-        message: "Timetable uploaded and processed successfully",
-      });
+    res.status(200).json({
+      status: "success",
+      message: "Timetable uploaded and processed successfully",
+    });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ status: "failed", message: error.message });
   }
 };
@@ -118,8 +157,6 @@ exports.deleteTimeTable = async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log(id)
-
     const deletedTimeTable = await Timetable.findByIdAndDelete(id);
 
     if (!deletedTimeTable) {
@@ -131,6 +168,51 @@ exports.deleteTimeTable = async (req, res) => {
     res
       .status(200)
       .send({ status: "success", message: "Timetable deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ status: "failed", message: error.message });
+  }
+};
+
+exports.createClassSchedules = async (req, res) => {
+  try {
+    const timetables = await Timetable.find();
+    let schedules =
+      timetables[0]?.extractedData[new Date().getDay()]?.schedules;
+
+    const data = schedules.map((program) => ({
+      ...program,
+      content: program.content.map((course) => ({
+        ...course,
+        status: "pending",
+        attendees: [],
+        absentees: [],
+      })),
+    }));
+
+    for (const schedule of schedules) {
+      await Classes.create(schedule);
+    }
+    res
+      .status(200)
+      .json({ status: "success", message: "Schedules created successfully" });
+  } catch (error) {
+    res.status(500).json({ status: "failed", message: error.message });
+  }
+};
+
+exports.getProgramSchedule = async (req, res) => {
+  try {
+    const { programCode } = req.body;
+    const schedule = await Classes.findOne({ program: programCode });
+    if (!schedule) {
+      return res
+        .status(404)
+        .json({
+          status: 404,
+          message: `Schedule for ${programCode} not found`,
+        });
+    }
+    res.status(200).json({ status: "success", schedule });
   } catch (error) {
     res.status(500).json({ status: "failed", message: error.message });
   }
