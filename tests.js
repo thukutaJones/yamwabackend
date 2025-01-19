@@ -1,137 +1,296 @@
-const multer = require("multer");
-const xlsx = require("xlsx");
-const Timetable = require("../models/timetable.model");
-
-const storage = multer.memoryStorage();
-
-const upload = multer({
-  storage,
-  fileFilter: (req, file, cb) => {
-    const fileTypes = /xlsx|xls/;
-    const mimeTypes = [
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.ms-excel",
-    ];
-    const extName = fileTypes.test(file.originalname.toLowerCase());
-    const mimeType = mimeTypes.includes(file.mimetype);
-
-    if (mimeType && extName) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only .xls and .xlsx files are allowed!"));
-    }
+const programs = [
+  {
+    name: "BIOMEDICAL SCIENCES",
+    codes: [
+      { name: "BSBS11" },
+      { name: "BSBS23" },
+      { name: "BSBS35" },
+      { name: "BSBS47" },
+    ],
   },
-});
-exports.uploadFile = upload.single("timetable");
+  {
+    name: "NURSING AND MIDWIFERY",
+    codes: [{ name: "BSNM11" }],
+  },
+  {
+    name: "OPTOMETRY",
+    codes: [{ name: "BOPT11" }],
+  },
+  {
+    name: "COMMUNICATION STUDIE",
+    codes: [
+      { name: "BACS11" },
+      { name: "BACS23" },
+      { name: "BACS35" },
+      { name: "BACS47" },
+    ],
+  },
+  {
+    name: "DEVELOPMENT STUDIES",
+    codes: [
+      { name: "BDEV11" },
+      { name: "BDEV23" },
+      { name: "BDEV35" },
+      { name: "BDEV47" },
+    ],
+  },
+  {
+    name: "HISTORY AND HERITAGE STUDIES",
+    codes: [
+      { name: "BHHS11" },
+      { name: "BHHS23" },
+      { name: "BHHS35" },
+      { name: "BHHS47" },
+    ],
+  },
+  {
+    name: "INTERNATIONAL RELATIONS AND DIPLOMACY",
+    codes: [
+      { name: "BIRD11" },
+      { name: "BIRD23" },
+      { name: "BIRD35" },
+      { name: "BIRD47" },
+    ],
+  },
+  {
+    name: "POLITICS AND GOVERNANCE",
+    codes: [
+      { name: "BPOL11" },
+      { name: "BPOL23" },
+      { name: "BPOL35" },
+      { name: "BPOL47" },
+    ],
+  },
+  {
+    name: "LIBRARY AND INFORMATION SCIENCE",
+    codes: [
+      { name: "BLIS11" },
+      { name: "BLIS23" },
+      { name: "BLIS35" },
+      { name: "BLIS47" },
+    ],
+  },
+  {
+    name: "THEOLOGY AND RELIGIOUS STUDIES",
+    codes: [
+      { name: "BTRS11" },
+      { name: "BTRS23" },
+      { name: "BTRS35" },
+      { name: "BTRS47" },
+    ],
+  },
+  {
+    name: "EDUCATION (ARTS)",
+    codes: [
+      { name: "BEDA11" },
+      { name: "BEDA/BEDL/BEDF23" },
+      { name: "BEDA/BEDL/BEDF35" },
+      { name: "BEDA/BEDL/BEDF47" },
+    ],
+  },
+  {
+    name: "EDUCATION (LANGUAGES)",
+    codes: [
+      { name: "BEDL11" },
+      { name: "BEDA/BEDL/BEDF23" },
+      { name: "BEDA/BEDL/BEDF35" },
+      { name: "BEDA/BEDL/BEDF47" },
+    ],
+  },
+  {
+    name: "EDUCATION (SCIENCE)",
+    codes: [
+      { name: "BEDS11" },
+      { name: "BEDS23" },
+      { name: "BEDS35" },
+      { name: "BEDS47" },
+    ],
+  },
+  {
+    name: "FISHERIES AND AQUATIC SCIENCES",
+    codes: [
+      { name: "BSFS11" },
+      { name: "BSFS23" },
+      { name: "BSFS35" },
+      { name: "BSFS47" },
+    ],
+  },
+  {
+    name: "FORESTRY AND ENVIRONMENTAL MANAGEMENT",
+    codes: [
+      { name: "BSCF11" },
+      { name: "BSCF23" },
+      { name: "BSCF35" },
+      { name: "BSCF47" },
+    ],
+  },
+  {
+    name: "LAND MANAGEMENT (ESTATE MANAGEMENT)",
+    codes: [
+      { name: "BLME11" },
+      { name: "BLME23" },
+      { name: "BLME35" },
+      { name: "BLME47" },
+    ],
+  },
+  {
+    name: "LAND MANAGEMENT (PHYSICAL PLANNING)",
+    codes: [
+      { name: "BLMP11" },
+      { name: "BLMP23" },
+      { name: "BLMP35" },
+      { name: "BLMP47" },
+    ],
+  },
+  {
+    name: "TRANSFORMATIVE COMMUNITY DEVELOPMENT",
+    codes: [
+      { name: "BTCD11" },
+      { name: "BTCD23" },
+      { name: "BTCD35" },
+      { name: "BTCD47" },
+    ],
+  },
+  {
+    name: "VALUE CHAIN AGRICULTURE",
+    codes: [
+      { name: "BVCA11" },
+      { name: "BVCA23" },
+      { name: "BVCA35" },
+      { name: "BVCA47" },
+    ],
+  },
+  {
+    name: "WATER RESOURCES MANAGEMENT AND DEVELOPMENT",
+    codes: [
+      { name: "BSWR11" },
+      { name: "BSWR23" },
+      { name: "BSWR35" },
+      { name: "BSWR47" },
+    ],
+  },
+  {
+    name: "INFORMATION AND COMMUNICATION TECHNOLOGY",
+    codes: [
+      { name: "BICT11" },
+      { name: "BICT23" },
+      { name: "BICT35" },
+      { name: "BICT47" },
+    ],
+  },
+  {
+    name: "RENEWABLE ENERGY TECHNOLOGIES",
+    codes: [
+      { name: "BRESE11" },
+      { name: "BRET23 / BRETU23" },
+      { name: "BRET35" },
+      { name: "BRET47" },
+    ],
+  },
+  {
+    name: "CHEMISTRY",
+    codes: [
+      { name: "BSC CHEMISTRY11" },
+      { name: "BSC CHEMISTRY23" },
+      { name: "BSC CHEMISTRY35" },
+      { name: "BSC CHEMISTRY47" },
+    ],
+  },
+  {
+    name: "DATA SCIENCE",
+    codes: [
+      { name: "BSC DATA SCIENCE11" },
+      { name: "BSC DATA SCIENCE23" },
+      { name: "BSC DATA SCIENCE35" },
+      { name: "BSC DATA SCIENCE47" },
+    ],
+  },
+  {
+    name: "MATHEMATICAL SCIENCES",
+    codes: [
+      { name: "BSC MATH SC11" },
+      { name: "BSC MATH SC23" },
+      { name: "BSC MATH SC35" },
+      { name: "BSC MATH SC47" },
+    ],
+  },
+  {
+    name: "PHYSICS AND ELECTRONICS",
+    codes: [
+      { name: "BSC PHYSICS11" },
+      { name: "BSC PHYSICS23" },
+      { name: "BSC PHYSICS35" },
+      { name: "BSC PHYSICS47" },
+    ],
+  },
+  {
+    name: "SPORTS MANAGEMENT",
+    codes: [{ name: "BASM11" }],
+  },
+  {
+    name: "CULTURE AND HERITAGE TOURISM",
+    codes: [
+      { name: "BCHT11" },
+      { name: "BCHT23" },
+      { name: "BCHT35" },
+      { name: "BCHT47" },
+    ],
+  },
+  {
+    name: "CULINARY ARTS",
+    codes: [
+      { name: "BCUL11" },
+      { name: "BCUL23" },
+      { name: "BCUL35" },
+      { name: "BCUL47" },
+    ],
+  },
+  {
+    name: "HOSPITALITY MANAGEMENT",
+    codes: [
+      { name: "BSHM11" },
+      { name: "BSHM23" },
+      { name: "BSHM35" },
+      { name: "BSHM47" },
+    ],
+  },
+  {
+    name: "TOURISM",
+    codes: [
+      { name: "BSTO11" },
+      { name: "BSTO23" },
+      { name: "BSTO35" },
+      { name: "BSTO47(ST)" },
+      { name: "BSTO47(T&T)" },
+    ],
+  },
+];
 
-const extractTimetableData = (fileBuffer) => {
-  const workbook = xlsx.read(fileBuffer, { type: "buffer" });
-  const sheetNames = workbook.SheetNames;
+const mongoose = require("mongoose");
+const app = require("./app");
+const Program = require("./models/programs.model");
 
-  return sheetNames
-    .map((sheetName) => {
-      const sheet = workbook.Sheets[sheetName];
-      const timetableData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+const port = process.env.PORT || 7000;
 
-      if (timetableData.length < 3) return null;
-
-      const day = timetableData[0][0] || sheetName;
-      const timeSlots = timetableData[1].slice(1);
-
-      return {
-        day,
-        schedules: timetableData
-          .slice(2)
-          .map((row) => ({
-            program: row[0],
-            content: timeSlots
-              .map((time, index) => ({
-                course: row[index + 1] || "",
-                time,
-              }))
-              .filter((item) => item.course),
-          }))
-          .filter((item) => item.program),
-      };
-    })
-    .filter((sheet) => sheet);
+const addProgram = async (program) => {
+  try {
+    await Program.create(program);
+    console.log(program, " Added");
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-exports.uploadTimetable = async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
+console.log(programs.length);
 
-  try {
-    const { institution } = req.body;
-    const existingInstitution = await Timetable.findOne({
-      institution: institution?.toUpperCase(),
-    });
-    if (existingInstitution) {
-      return res
-        .status(400)
-        .json({ status: "failed", message: "Institution already exist" });
+mongoose
+  .connect(process.env.DATABASE_URL)
+  .then(async () => {
+    for (const program of programs) {
+      await addProgram(program);
+      // console.log(program)
     }
-    const extractedData = extractTimetableData(req.file.buffer);
-
-    const timetable = new Timetable({
-      extractedData,
-      institution: institution?.toUpperCase(),
-    });
-    await timetable.save();
-
-    res
-      .status(200)
-      .json({
-        status: "success",
-        message: "Timetable uploaded and processed successfully",
-      });
-  } catch (error) {
-    res.status(500).json({ status: "failed", message: error.message });
-  }
-};
-
-exports.getTimetableData = async (req, res) => {
-  try {
-    const timetables = await Timetable.find();
-
-    if (timetables.length === 0) {
-      return res.status(404).json({ message: "No timetables found" });
-    }
-
-    res.status(200).json(timetables.map(({ extractedData }) => extractedData));
-  } catch (error) {
-    res.status(500).json({ status: "failed", message: error.message });
-  }
-};
-
-exports.getAvailableTimeTables = async (req, res) => {
-  try {
-    const availableTimetables = await Timetable.find().select("-extractedData");
-    res.status(200).json({ status: "success", availableTimetables });
-  } catch (error) {
-    res.status(500).json({ status: "failed", message: error.message });
-  }
-};
-
-exports.deleteTimeTable = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    console.log(id)
-
-    const deletedTimeTable = await Timetable.findByIdAndDelete(id);
-
-    if (!deletedTimeTable) {
-      return res
-        .status(404)
-        .send({ status: "failed", message: "Timetable not found" });
-    }
-
-    res
-      .status(200)
-      .send({ status: "success", message: "Timetable deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ status: "failed", message: error.message });
-  }
-};
+  })
+  .catch((error) => {
+    console.log(`Error connecting database: ${error}`);
+  });

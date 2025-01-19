@@ -28,8 +28,7 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Please provide the role of the user"],
     },
     program: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Program",
+      type: String,
       required: function () {
         return this.role === "student";
       },

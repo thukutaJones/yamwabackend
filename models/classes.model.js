@@ -5,7 +5,6 @@ const ClassesSchema = mongoose.Schema(
     program: {
       type: String,
       required: [true, "Program is required"],
-      unique: true,
     },
     content: [
       {
@@ -34,6 +33,12 @@ const ClassesSchema = mongoose.Schema(
             reason: {
               type: String,
             },
+          },
+        ],
+        students: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
           },
         ],
       },

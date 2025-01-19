@@ -203,15 +203,17 @@ exports.createClassSchedules = async (req, res) => {
 exports.getProgramSchedule = async (req, res) => {
   try {
     const { programCode } = req.body;
-    const schedule = await Classes.findOne({ program: programCode });
-    if (!schedule) {
-      return res
-        .status(404)
-        .json({
-          status: 404,
-          message: `Schedule for ${programCode} not found`,
-        });
-    }
+    // const schedule = await Classes.findOne({ program: programCode });
+    const timetables = await Timetable.find();
+    let schedules =
+      timetables[0]?.extractedData[4]?.schedules;
+    // if (!schedule) {
+    //   return res.status(404).json({
+    //     status: 404,
+    //     message: `Schedule for ${programCode} not found`,
+    //   });
+    // }
+    const schedule = schedules.find(schedule => schedule.program === programCode);
     res.status(200).json({ status: "success", schedule });
   } catch (error) {
     res.status(500).json({ status: "failed", message: error.message });

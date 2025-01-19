@@ -6,7 +6,7 @@ const {
   deleteTimeTable,
   getAvailableTimeTables,
   createClassSchedules,
-  getProgramSchedule
+  getProgramSchedule,
 } = require("../controllers/timetable.controller");
 
 const router = express.Router();
@@ -15,8 +15,7 @@ router.post("/", uploadFile, uploadTimetable);
 router.get("/content", getTimetableData);
 router.get("/", getAvailableTimeTables);
 router.delete("/:id", deleteTimeTable);
-router.post("/schedules", createClassSchedules);
-router.post("/schedules/program", getProgramSchedule);
-
+// router.post("/schedules", createClassSchedules);
+router.post("/schedule", getProgramSchedule);
 
 module.exports = router;
