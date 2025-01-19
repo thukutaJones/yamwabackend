@@ -29,8 +29,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/timetable", timeTableRoutes);
 app.use("/api/me", userRoutes);
 
-cron.schedule("0 1 * * *", async () => {
-  await getProgramSchedule();
-});
+// cron.schedule("0 1 * * *", async () => {
+//   await getProgramSchedule();
+// });
 
 module.exports = app;

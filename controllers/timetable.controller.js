@@ -207,8 +207,7 @@ exports.getProgramSchedule = async (req, res) => {
     const timetables = await Timetable.find();
     const day = { 0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 };
     let schedules =
-      timetables[0]?.extractedData[day[new Date().getDay()]]?.schedules;
-    console.log(new Date().getDay());
+      timetables[0]?.extractedData[4]?.schedules;
     // if (!schedule) {
     //   return res.status(404).json({
     //     status: 404,
