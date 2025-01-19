@@ -206,14 +206,16 @@ exports.getProgramSchedule = async (req, res) => {
     // const schedule = await Classes.findOne({ program: programCode });
     const timetables = await Timetable.find();
     let schedules =
-      timetables[0]?.extractedData[4]?.schedules;
+      timetables[0]?.extractedData[new Date().getDay()]?.schedules;
     // if (!schedule) {
     //   return res.status(404).json({
     //     status: 404,
     //     message: `Schedule for ${programCode} not found`,
     //   });
     // }
-    const schedule = schedules.find(schedule => schedule.program === programCode);
+    const schedule = schedules.find(
+      (schedule) => schedule.program === programCode
+    );
     res.status(200).json({ status: "success", schedule });
   } catch (error) {
     res.status(500).json({ status: "failed", message: error.message });
