@@ -202,12 +202,12 @@ exports.createClassSchedules = async (req, res) => {
 
 exports.getProgramSchedule = async (req, res) => {
   try {
-    const { programCode } = req.body;
+    const { programCode, day } = req.body;
     // const schedule = await Classes.findOne({ program: programCode });
     const timetables = await Timetable.find();
-    const day = { 0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 };
+    const daysMap = { 0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 };
     let schedules =
-      timetables[0]?.extractedData[day[new Date().getDay()]]?.schedules;
+      timetables[0]?.extractedData[daysMap[day]]?.schedules;
     // if (!schedule) {
     //   return res.status(404).json({
     //     status: 404,
@@ -222,3 +222,4 @@ exports.getProgramSchedule = async (req, res) => {
     res.status(500).json({ status: "failed", message: error.message });
   }
 };
+
